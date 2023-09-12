@@ -22,6 +22,9 @@ MyDelayAudioProcessor::MyDelayAudioProcessor()
                        )
 #endif
 {
+    
+//    maxDelayTime = 5.0;
+    
 }
 
 MyDelayAudioProcessor::~MyDelayAudioProcessor()
@@ -36,29 +39,29 @@ const juce::String MyDelayAudioProcessor::getName() const
 
 bool MyDelayAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
-    return true;
-   #else
-    return false;
-   #endif
+    if (JucePlugin_WantsMidiInput)
+        return true;
+    else
+        return false;
+   
 }
 
 bool MyDelayAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
-    return true;
-   #else
-    return false;
-   #endif
+    if (JucePlugin_ProducesMidiOutput)
+        return true;
+    else
+        return false;
+
 }
 
 bool MyDelayAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
-    return false;
-   #endif
+   if (JucePlugin_IsMidiEffect)
+       return true;
+   else
+       return false;
+   
 }
 
 double MyDelayAudioProcessor::getTailLengthSeconds() const
@@ -93,8 +96,13 @@ void MyDelayAudioProcessor::changeProgramName (int index, const juce::String& ne
 //==============================================================================
 void MyDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    // prepare circular buffer for delay
+    const int numInputChannels = getTotalNumInputChannels();
+    const int delayBufferSize = 5.0 * (sampleRate /*+ samplesPerBlock*/); // TODO change to match max delay time
+    mSampleRate = sampleRate;
+    
+    delayBuffer.setSize(numInputChannels, delayBufferSize);
+    
 }
 
 void MyDelayAudioProcessor::releaseResources()
@@ -102,6 +110,10 @@ void MyDelayAudioProcessor::releaseResources()
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
+
+//static float getMaxDelayTime() {
+//    return MyDelayAudioProcessor::maxDelayTime;
+//}
 
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool MyDelayAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -143,7 +155,7 @@ void MyDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
+    
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
@@ -151,13 +163,140 @@ void MyDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
     
-    juce::AudioBuffer<float> processedBuffer;
     
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
+    // for ease of writing and readability
+    const int audioBufferLength = buffer.getNumSamples();
+    const int delayBufferLength = delayBuffer.getNumSamples();
+    
+   
+    if (buffer.getNumSamples() != 0){
+        for (int channel = 0; channel < totalNumInputChannels; ++channel)
+        {
+            
+            // create read pointers, points to start of array
+            const float* audioBufferReadPointer = buffer.getReadPointer(channel);
+            const float* delayBufferReadPointer = delayBuffer.getReadPointer(channel);
+            
+            fillDelayBuffer   (channel,
+                               audioBufferLength,
+                               delayBufferLength,
+                               audioBufferReadPointer,
+                               delayBufferReadPointer);
+            
+            copyFromDelayBuffer(channel,
+                                buffer,
+                                audioBufferLength,
+                                delayBufferLength,
+                                audioBufferReadPointer,
+                                delayBufferReadPointer);
+            
+        }
+        
+    }
+    
+    
+    // move write position number of samples that were copied, for all channels
+    delayWritePosition += audioBufferLength;
+    
+    // check for wraparound index
+    delayWritePosition %= delayBufferLength;
+    
+    std::cout << "audioBufferLength = ";
+    std::cout << audioBufferLength;
+    std::cout << "\n";
+    
+    std::cout << "delayWritePosition = ";
+    std::cout << delayWritePosition;
+    std::cout << "--------------------------------\n";
+    
+}
 
-        // ..do something to the data...
+void MyDelayAudioProcessor::copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer)
+{
+    
+    int delayTimeMilliSeconds = 1000 ; // in ms, TODO change to variable from user
+    int delayTimeSeconds = static_cast<int>(delayTimeMilliSeconds / 1000);
+    
+    
+    // TODO this is always the same value
+    const int readPosition = (delayBufferLength + delayWritePosition - (static_cast<int>(mSampleRate * delayTimeSeconds))) % delayBufferLength;
+    
+    
+    // is there enough space in the rest of the delay buffer to copy without wrapping
+    if (delayBufferLength > audioBufferLength + readPosition) // yes!
+    {
+        audioBuffer.addFrom(
+                            channel,
+                            0,
+                            delayBufferReadPointer+readPosition,
+                            audioBufferLength);
+    }
+    else // no.
+    {
+        int bufferRemaining = delayBufferLength - readPosition;
+        int bufferExtra = audioBufferLength - bufferRemaining;
+        
+        // addFrom(channel, dest_start_sample, source_buffer, dest_end channel
+        
+        // add first part of delay from end of delay buffer to start of audio buffer
+        audioBuffer.addFrom(channel,
+                            0,
+                            delayBufferReadPointer+readPosition,
+                            bufferRemaining);
+        
+        // add second part of delay from start of delay buffer to middle of audio buffer
+        audioBuffer.addFrom(channel,
+                            bufferRemaining,
+                            delayBufferReadPointer,
+                            bufferExtra);
+    }
+    
+    
+}
+
+void MyDelayAudioProcessor::fillDelayBuffer(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPosition, const float* delayBufferReadPosition)
+{
+    
+    const float gainRatio = 1.0;
+    
+    // copy number of samples from input buffer to delay buffer
+    if (delayBufferLength > audioBufferLength + delayWritePosition) // no need to wraparound write
+    {
+        delayBuffer.copyFromWithRamp(channel,
+                                     delayWritePosition,
+                                     audioBufferReadPosition,
+                                     audioBufferLength,
+                                     gainRatio,
+                                     gainRatio);
+        
+    }
+    else // need to wraparound write
+    {
+        // number of samples to write first part of delay at end of audiobuffer
+        const int delayBufferRemaining = delayBufferLength - delayWritePosition;
+        
+        // number of samples to write second part of delay at start of audiobuffer
+        const int delayBufferWrap = audioBufferLength - delayBufferRemaining;
+        
+        
+        // audioBuffer.copyFrom(channel, destStartSample, source, numSamples, startgain, endgain)
+        
+        // write before wraparound
+        delayBuffer.copyFromWithRamp(channel,
+                                     delayWritePosition,
+                                     audioBufferReadPosition,
+                                     delayBufferRemaining,
+                                     gainRatio,
+                                     gainRatio);
+        
+        // now write from beginning of buffer (the wraparound!)
+        delayBuffer.copyFromWithRamp(channel,
+                                     0,
+                                     audioBufferReadPosition+delayBufferRemaining, // check!
+                                     delayBufferWrap,
+                                     gainRatio,
+                                     gainRatio);
+        
     }
 }
 
