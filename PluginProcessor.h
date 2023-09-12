@@ -13,7 +13,7 @@
 //==============================================================================
 /**
 */
-class MyDelayAudioProcessor  : public juce::AudioProcessor
+class SynloveSynthAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
                             #endif
@@ -29,8 +29,8 @@ public:
     static float maxDelayTime; // in seconds
     
     //==============================================================================
-    MyDelayAudioProcessor();
-    ~MyDelayAudioProcessor() override;
+    SynloveSynthAudioProcessor();
+    ~SynloveSynthAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -66,27 +66,24 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
     
     // my functions
-    
-//    static float getMaxDelayTime();
-    
+        
+    //    static float getMaxDelayTime();
+        
     void fillDelayBuffer(int channel, const int BufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
 
     void copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
     
     void feedbackDelay(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferWritePointer);
-    
-    
+        
+
 private:
-    
+
     juce::AudioBuffer<float> delayBuffer;
     juce::AudioBuffer<float> dryAudioBufferCopy;
     int delayWritePosition { 0 };
     int mSampleRate { 44100 };
-    
-    
-    
-    
-    
+        
+
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyDelayAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynloveSynthAudioProcessor)
 };

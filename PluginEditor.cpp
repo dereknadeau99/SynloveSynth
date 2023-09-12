@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor& p)
+SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynthAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // Make sure that before the constructor has finished, you've set the
@@ -38,7 +38,7 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     addAndMakeVisible (&delayTimeSlider);
     
     // add the listener to the slider
-    delayTimeSlider.addListener (this);
+    delayTimeSlider.addListener(this);
     
     // add label to slider
     addAndMakeVisible (delayTimeLabel);
@@ -93,7 +93,7 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     addAndMakeVisible (&drywetSlider);
     
     // add the listener to the slider
-    drywetSlider.addListener (this);
+    drywetSlider.addListener(this);
     drywetLabel.setText ("Dry/Wet Amount", juce::dontSendNotification);
     drywetLabel.attachToComponent (&drywetSlider, false);
     drywetLabel.setJustificationType(juce::Justification::horizontallyCentred);
@@ -159,11 +159,7 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     
 }
 
-MyDelayAudioProcessorEditor::~MyDelayAudioProcessorEditor()
-{
-}
-
-void MyDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
+void SynloveSynthAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
     
 //    float delayTimeSliderValue = delayTimeSlider.getValue();
@@ -239,18 +235,23 @@ void MyDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     
 }
 
+
+SynloveSynthAudioProcessorEditor::~SynloveSynthAudioProcessorEditor()
+{
+}
+
 //==============================================================================
-void MyDelayAudioProcessorEditor::paint (juce::Graphics& g)
+void SynloveSynthAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-//    g.setColour (juce::Colours::white);
-//    g.setFont (15.0f);
-//    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    
+    //    g.setColour (juce::Colours::white);
+    //    g.setFont (15.0f);
+    //    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
-void MyDelayAudioProcessorEditor::resized()
+void SynloveSynthAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..

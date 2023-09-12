@@ -14,13 +14,12 @@
 //==============================================================================
 /**
 */
-class MyDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
-                                    private juce::Slider::Listener //
-
+class SynloveSynthAudioProcessorEditor: public juce::AudioProcessorEditor,
+                                        private juce::Slider::Listener
 {
 public:
-    MyDelayAudioProcessorEditor (MyDelayAudioProcessor&);
-    ~MyDelayAudioProcessorEditor() override;
+    SynloveSynthAudioProcessorEditor (SynloveSynthAudioProcessor&);
+    ~SynloveSynthAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -29,10 +28,10 @@ public:
 private:
     
     void sliderValueChanged(juce::Slider* slider) override;
-    
+        
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    MyDelayAudioProcessor& audioProcessor;
+    SynloveSynthAudioProcessor& audioProcessor;
     
     juce::Slider delayTimeSlider;
     juce::Label  delayTimeLabel;
@@ -48,8 +47,8 @@ private:
     
     juce::Slider bpmSlider;
     juce::Label  bpmLabel;
-    
-//    juce::Button[4] bpmDivisionButton;
+        
+    //    juce::Button[4] bpmDivisionButton;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyDelayAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynloveSynthAudioProcessorEditor)
 };
