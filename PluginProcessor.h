@@ -21,6 +21,8 @@ class MyDelayAudioProcessor  : public juce::AudioProcessor
 public:
     
     float delayTimeVal;
+    float delayFeedbackVal;
+    float drywetVal;
     static float maxDelayTime; // in seconds
     
     //==============================================================================
@@ -67,6 +69,10 @@ public:
     void fillDelayBuffer(int channel, const int BufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
 
     void copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
+    
+    void feedbackDelay(int channel, const int audioBufferLength, const int delayBufferLength, float* audioBufferWritePointer);
+    
+    
 private:
     
     juce::AudioBuffer<float> delayBuffer;
