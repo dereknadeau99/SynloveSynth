@@ -48,8 +48,7 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     // feedback time slider
     feedbackSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
     feedbackSlider.setRange (0.0, 100.0, 0.01);
-    feedbackSlider.setTextBoxStyle (
-                                    juce::Slider::TextBoxBelow,
+    feedbackSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
                                     false,
                                     90,
                                     20);
@@ -71,11 +70,10 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     // dry/wet slider
     drywetSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
     drywetSlider.setRange (0.0, 100.0, 0.01);
-    drywetSlider.setTextBoxStyle (
-                                    juce::Slider::TextBoxBelow,
-                                    false,
-                                    90,
-                                    20);
+    drywetSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                  false,
+                                  90,
+                                  20);
     drywetSlider.setPopupDisplayEnabled (false, false, this);
     drywetSlider.setTextValueSuffix ("%");
     drywetSlider.setValue(50.0);

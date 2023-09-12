@@ -70,12 +70,13 @@ public:
 
     void copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
     
-    void feedbackDelay(int channel, const int audioBufferLength, const int delayBufferLength, float* audioBufferWritePointer);
+    void feedbackDelay(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferWritePointer);
     
     
 private:
     
     juce::AudioBuffer<float> delayBuffer;
+    juce::AudioBuffer<float> dryAudioBufferCopy;
     int delayWritePosition { 0 };
     int mSampleRate { 44100 };
     

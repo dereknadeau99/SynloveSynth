@@ -102,6 +102,7 @@ void MyDelayAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBloc
     mSampleRate = sampleRate;
     
     delayBuffer.setSize(numInputChannels, delayBufferSize);
+    dryAudioBufferCopy.setSize(numInputChannels, samplesPerBlock);
     
 }
 
@@ -173,16 +174,28 @@ void MyDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         for (int channel = 0; channel < totalNumInputChannels; ++channel)
         {
             
+            std::cout << channel;
+            
             // create read pointers, points to start of array
             const float* audioBufferReadPointer = buffer.getReadPointer(channel);
             const float* delayBufferReadPointer = delayBuffer.getReadPointer(channel);
-            float* audioBufferWritePointer = buffer.getWritePointer(channel);
+            const float* audioBufferWritePointer = buffer.getWritePointer(channel);
+            
+            // set up dry copy for later mixing
+            dryAudioBufferCopy.copyFromWithRamp(channel,
+                                                0,
+                                                audioBufferReadPointer,
+                                                audioBufferLength,
+                                                1-drywetVal, 1-drywetVal);
+            
+            // copy dry audio to delay buffer in appropriate time
             fillDelayBuffer(channel,
                             audioBufferLength,
                             delayBufferLength,
                             audioBufferReadPointer,
                             delayBufferReadPointer);
             
+            // copy from delay buffer to output buffer from appropriate time in past
             copyFromDelayBuffer(channel,
                                 buffer,
                                 audioBufferLength,
@@ -190,10 +203,24 @@ void MyDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
                                 audioBufferReadPointer,
                                 delayBufferReadPointer);
             
+            // 
             feedbackDelay(channel,
                           audioBufferLength,
                           delayBufferLength,
                           audioBufferWritePointer);
+            
+            
+            // apply proper gain to wet version
+            buffer.applyGain(channel,
+                             0,
+                             audioBufferLength,
+                             drywetVal);
+            
+            // sum dry and wet
+            buffer.addFrom(channel,
+                           0,
+                           dryAudioBufferCopy.getReadPointer(channel),
+                           audioBufferLength);
             
         }
         
@@ -219,9 +246,7 @@ void MyDelayAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
 void MyDelayAudioProcessor::copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer)
 {
     
-    
-    
-    // TODO this is always the same value
+   
     const int readPosition = (delayBufferLength + delayWritePosition - (static_cast<int>(mSampleRate * delayTimeVal))) % delayBufferLength;
     
     
@@ -258,10 +283,8 @@ void MyDelayAudioProcessor::copyFromDelayBuffer(int channel, juce::AudioBuffer<f
 }
 
 
-void MyDelayAudioProcessor::feedbackDelay(int channel, const int audioBufferLength, const int delayBufferLength, float* audioBufferWritePointer)
+void MyDelayAudioProcessor::feedbackDelay(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferWritePointer)
 {
-    
-    //delayFeedbackVal = 0.6;
     
     if (delayBufferLength > audioBufferLength + delayWritePosition)
     {
@@ -276,7 +299,7 @@ void MyDelayAudioProcessor::feedbackDelay(int channel, const int audioBufferLeng
     {
         
         const int delayBufferRemaining = delayBufferLength - delayWritePosition;
-       // const int delayBufferExtra =
+        const int delayBufferExtra     = audioBufferLength - delayBufferRemaining;
         
         delayBuffer.addFromWithRamp(channel,
                                     delayBufferRemaining,
@@ -288,7 +311,7 @@ void MyDelayAudioProcessor::feedbackDelay(int channel, const int audioBufferLeng
         delayBuffer.addFromWithRamp(channel,
                                     0,
                                     audioBufferWritePointer,
-                                    audioBufferLength - delayBufferRemaining,
+                                    delayBufferExtra,
                                     delayFeedbackVal,
                                     delayFeedbackVal);
         
@@ -299,8 +322,6 @@ void MyDelayAudioProcessor::feedbackDelay(int channel, const int audioBufferLeng
 
 void MyDelayAudioProcessor::fillDelayBuffer(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPosition, const float* delayBufferReadPosition)
 {
-    
-    //delayFeedbackVal = 0.6;
     
     // copy number of samples from input buffer to delay buffer
     if (delayBufferLength > audioBufferLength + delayWritePosition) // no need to wraparound write
