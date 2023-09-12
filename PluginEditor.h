@@ -45,6 +45,11 @@ private:
     
     juce::Slider panSlider;
     juce::Label  panLabel;
+    
+    juce::Slider bpmSlider;
+    juce::Label  bpmLabel;
+    
+//    juce::Button[4] bpmDivisionButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyDelayAudioProcessorEditor)
 };

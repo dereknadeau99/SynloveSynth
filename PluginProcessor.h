@@ -23,7 +23,8 @@ public:
     float delayTimeVal;
     float delayFeedbackVal;
     float drywetVal;
-    float panVal;
+    float panVal {0.5};
+    float bpmVal;
     
     static float maxDelayTime; // in seconds
     

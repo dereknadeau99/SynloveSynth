@@ -323,8 +323,7 @@ void MyDelayAudioProcessor::feedbackDelay(int channel, const int audioBufferLeng
 void MyDelayAudioProcessor::fillDelayBuffer(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPosition, const float* delayBufferReadPosition)
 {
     
-    float channelPanValue = 0.0;
-    
+    float channelPanValue = 1.0;
     if (channel == 0) { channelPanValue = 1 - panVal; } // left channel gain
     else              { channelPanValue = panVal; }     // right channel gain
     

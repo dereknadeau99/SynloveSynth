@@ -19,7 +19,12 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     
     // delay time slider
     delayTimeSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
-    delayTimeSlider.setRange (0.0, 5.0, 0.01);
+    delayTimeSlider.setRange (0.0, 5.0);
+    delayTimeSlider.setValue(0.5);
+    delayTimeSlider.setNumDecimalPlacesToDisplay(2);
+    delayTimeSlider.setDoubleClickReturnValue(true, 1.0);
+    delayTimeSlider.setSkewFactor(0.5);
+    
     
     // settextboxstyle( location, readonly, width, height
     delayTimeSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
@@ -28,7 +33,6 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
                                      20);
     delayTimeSlider.setPopupDisplayEnabled (false, false, this);
     delayTimeSlider.setTextValueSuffix (" Seconds");
-    delayTimeSlider.setValue(1.0);
  
     // this function adds the slider to the editor
     addAndMakeVisible (&delayTimeSlider);
@@ -47,15 +51,18 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     // ===========================================================================
     // feedback time slider
     feedbackSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
-    feedbackSlider.setRange (0.0, 100.0, 0.01);
+    feedbackSlider.setRange (0.0, 100.0);
+    feedbackSlider.setNumDecimalPlacesToDisplay(2);
+    feedbackSlider.setValue(50.0);
+    feedbackSlider.setDoubleClickReturnValue(true, 50.0);
+    
     feedbackSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
                                     false,
                                     90,
                                     20);
     feedbackSlider.setPopupDisplayEnabled (false, false, this);
     feedbackSlider.setTextValueSuffix ("%");
-    feedbackSlider.setValue(50.0);
- 
+    
     // this function adds the slider to the editor
     addAndMakeVisible (&feedbackSlider);
     
@@ -69,14 +76,18 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     // ===========================================================================
     // dry/wet slider
     drywetSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
-    drywetSlider.setRange (0.0, 100.0, 0.01);
+    drywetSlider.setRange (0.0, 100.0);
+    drywetSlider.setValue(50.0);
+    drywetSlider.setNumDecimalPlacesToDisplay(2);
+    drywetSlider.setDoubleClickReturnValue(true, 50.0);
+    
     drywetSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
                                   false,
                                   90,
                                   20);
     drywetSlider.setPopupDisplayEnabled (false, false, this);
     drywetSlider.setTextValueSuffix ("%");
-    drywetSlider.setValue(50.0);
+    
  
     // this function adds the slider to the editor
     addAndMakeVisible (&drywetSlider);
@@ -91,22 +102,60 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     // panning slider
     panSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
     panSlider.setRange (-100, 100, 1);
+    panSlider.setValue(0);
+    panSlider.setDoubleClickReturnValue(true, 0);
+    
     panSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
                                   false,
                                   90,
                                   20);
     panSlider.setPopupDisplayEnabled (false, false, this);
     panSlider.setTextValueSuffix ("C");
-    panSlider.setValue(0.0);
+    
  
     // this function adds the slider to the editor
     addAndMakeVisible (&panSlider);
     
     // add the listener to the slider
     panSlider.addListener (this);
+    
+    // add label to slider
     panLabel.setText ("Delay Pan", juce::dontSendNotification);
     panLabel.attachToComponent (&panSlider, false);
     panLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    
+    // ===========================================================================
+    // bpm label / changer
+    
+    bpmSlider.setSliderStyle(juce::Slider::LinearBar);
+    bpmSlider.setRange(30, 200, 0.1);
+    bpmSlider.setValue(120.0);
+    bpmSlider.setDoubleClickReturnValue(true, 120.0);
+    bpmSlider.setNumDecimalPlacesToDisplay(1);
+    
+    bpmSlider.setTextBoxStyle (juce::Slider::TextBoxAbove,
+                                  false,
+                                  90,
+                                  20);
+    bpmSlider.setPopupDisplayEnabled (false, false, this);
+    bpmSlider.setTextValueSuffix (" BPM");
+    
+    bpmSlider.addListener(this);
+    
+    addAndMakeVisible (&bpmSlider);
+    
+    
+    
+//    bpmLabel.setText("BPM", juce::dontSendNotification);
+//    bpmLabel.setJustificationType(juce::Justification::horizontallyCentred);
+//    addAndMakeVisible(&bpmLabel);
+    
+
+    
+    
+    
+    
     
 }
 
@@ -116,26 +165,77 @@ MyDelayAudioProcessorEditor::~MyDelayAudioProcessorEditor()
 
 void MyDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
-    audioProcessor.delayTimeVal = delayTimeSlider.getValue();
-    audioProcessor.delayFeedbackVal = feedbackSlider.getValue() / 100.0; // convert from percentage to decimal
-    audioProcessor.drywetVal = drywetSlider.getValue() / 100.0 ; // convert from percentage to decimal
+    
+//    float delayTimeSliderValue = delayTimeSlider.getValue();
+//    float feedbackSliderValue  = feedbackSlider.getValue();
+//    float drywetSliderValue    = drywetSlider.getValue();
+    
+//
+    
+    
+    
+    // if delay time slider was changed, update bpm, and send both to processor
+    if (slider == &delayTimeSlider)
+    {
+        float delayTimeSliderValue = delayTimeSlider.getValue();
+        
+        // change from BPM to BPS to reflect delay units, and set delay to resulting value
+        bpmSlider.setValue(60.0 / delayTimeSliderValue, juce::dontSendNotification);
+        
+        // send new values to processor
+        audioProcessor.bpmVal = bpmSlider.getValue();
+        audioProcessor.delayTimeVal = delayTimeSliderValue;
+    }
+    
+    if (slider == &feedbackSlider)
+    {
+        audioProcessor.delayFeedbackVal = feedbackSlider.getValue() / 100.0; // convert from percentage to decimal
+    }
+    
+    if (slider == &drywetSlider)
+    {
+        audioProcessor.drywetVal = drywetSlider.getValue() / 100.0 ; // convert from percentage to decimal
+    }
+    
+    if (slider == &panSlider)
+    {
+        float panSliderValue = panSlider.getValue();
+        
+        // set pan slider text appropriately
+        if (panSliderValue > 0.0)       { panSlider.setTextValueSuffix ("R"); }
+        else if (panSliderValue < 0.0)  { panSlider.setTextValueSuffix ("L"); }
+        else                            { panSlider.setTextValueSuffix ("C"); }
+        
+        // usual range is (-100, +100)
+        // normalize to (0, 1) to match gain values, send to processor
+        audioProcessor.panVal = (panSliderValue + 100.0) / 200.0;
+    }
+    
+    // if bpm slider was changed, update delay time, and send both to processor
+    if (slider == &bpmSlider)
+    {
+        
+        float bpmSliderValue = bpmSlider.getValue();
+        
+        // change from BPM to BPS to reflect delay units, and set delay to resulting value
+        delayTimeSlider.setValue(60.0 / bpmSliderValue, juce::dontSendNotification);
+        
+        // send new values to processor
+        audioProcessor.bpmVal = bpmSliderValue;
+        audioProcessor.delayTimeVal = delayTimeSlider.getValue();
+        
+    }
+    
+    
+    
+    
+    
+    
     
     // update panSlider display
-    float panValue = panSlider.getValue();
     
-    if (panValue > 0.0) {
-        panSlider.setTextValueSuffix ("R");
-    }
-    else if (panValue < 0.0)
-    {
-        panSlider.setTextValueSuffix ("L");
-    }
-    else
-    {
-        panSlider.setTextValueSuffix ("C");
-    }
     
-    audioProcessor.panVal = (panValue + 100.0) / 200.0; // normalize to between 0(L) and 1(R), to match gain values
+    
     
 }
 
@@ -159,7 +259,6 @@ void MyDelayAudioProcessorEditor::resized()
     int w = getWidth();
     int sliderDim = 100;
     
-    
     delayTimeSlider.setBounds (static_cast<int>(1.0*w/5.0-sliderDim/2), // x pos
                                static_cast<int>(h/2-sliderDim/2),       // y pos
                                sliderDim,sliderDim);                    // dimensions
@@ -175,4 +274,7 @@ void MyDelayAudioProcessorEditor::resized()
     panSlider.setBounds       (static_cast<int>(4.0*w/5.0-sliderDim/2), // x pos
                                static_cast<int>(h/2-sliderDim/2),       // y pos
                                sliderDim,sliderDim);                    // dimensions
+    
+    bpmSlider.setBounds(0, 0, 200, 20);
+    
 }
