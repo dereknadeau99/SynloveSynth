@@ -64,13 +64,13 @@ public:
     
 //    static float getMaxDelayTime();
     
-    void fillDelayBuffer(int channel, const int BufferLength, const int delayBufferLength, const float* bufferData, const float* delayBufferData);
+    void fillDelayBuffer(int channel, const int BufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
 
-    void getFromDelayBuffer(juce::AudioBuffer<float>& buffer, int channel, const int bufferLength, const int delayBufferLength, const float* bufferData, const float* delayBufferData);
+    void copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
 private:
     
-    juce::AudioBuffer<float> mDelayBuffer;
-    int mWritePosition { 0 };
+    juce::AudioBuffer<float> delayBuffer;
+    int delayWritePosition { 0 };
     int mSampleRate { 44100 };
     
     
