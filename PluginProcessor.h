@@ -23,6 +23,8 @@ public:
     float delayTimeVal;
     float delayFeedbackVal;
     float drywetVal;
+    float panVal;
+    
     static float maxDelayTime; // in seconds
     
     //==============================================================================
@@ -79,6 +81,7 @@ private:
     juce::AudioBuffer<float> dryAudioBufferCopy;
     int delayWritePosition { 0 };
     int mSampleRate { 44100 };
+    
     
     
     

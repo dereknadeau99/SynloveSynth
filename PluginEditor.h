@@ -36,10 +36,15 @@ private:
     
     juce::Slider delayTimeSlider;
     juce::Label  delayTimeLabel;
+    
     juce::Slider feedbackSlider;
     juce::Label  feedbackLabel;
+    
     juce::Slider drywetSlider;
     juce::Label  drywetLabel;
+    
+    juce::Slider panSlider;
+    juce::Label  panLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyDelayAudioProcessorEditor)
 };

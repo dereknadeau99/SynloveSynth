@@ -323,6 +323,13 @@ void MyDelayAudioProcessor::feedbackDelay(int channel, const int audioBufferLeng
 void MyDelayAudioProcessor::fillDelayBuffer(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPosition, const float* delayBufferReadPosition)
 {
     
+    float channelPanValue = 0.0;
+    
+    if (channel == 0) { channelPanValue = 1 - panVal; } // left channel gain
+    else              { channelPanValue = panVal; }     // right channel gain
+    
+    const float gain = channelPanValue * delayFeedbackVal;
+    
     // copy number of samples from input buffer to delay buffer
     if (delayBufferLength > audioBufferLength + delayWritePosition) // no need to wraparound write
     {
@@ -330,8 +337,8 @@ void MyDelayAudioProcessor::fillDelayBuffer(int channel, const int audioBufferLe
                                      delayWritePosition,
                                      audioBufferReadPosition,
                                      audioBufferLength,
-                                     delayFeedbackVal,
-                                     delayFeedbackVal);
+                                     gain,
+                                     gain);
         
     }
     else // need to wraparound write
@@ -350,16 +357,16 @@ void MyDelayAudioProcessor::fillDelayBuffer(int channel, const int audioBufferLe
                                      delayWritePosition,
                                      audioBufferReadPosition,
                                      delayBufferRemaining,
-                                     delayFeedbackVal,
-                                     delayFeedbackVal);
+                                     gain,
+                                     gain);
         
         // now write from beginning of buffer (the wraparound!)
         delayBuffer.copyFromWithRamp(channel,
                                      0,
                                      audioBufferReadPosition+delayBufferRemaining, // check!
                                      delayBufferWrap,
-                                     delayFeedbackVal,
-                                     delayFeedbackVal);
+                                     gain,
+                                     gain);
         
     }
 }

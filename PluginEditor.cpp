@@ -86,6 +86,28 @@ MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor&
     drywetLabel.setText ("Dry/Wet Amount", juce::dontSendNotification);
     drywetLabel.attachToComponent (&drywetSlider, false);
     drywetLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    // ===========================================================================
+    // panning slider
+    panSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    panSlider.setRange (-100, 100, 1);
+    panSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                  false,
+                                  90,
+                                  20);
+    panSlider.setPopupDisplayEnabled (false, false, this);
+    panSlider.setTextValueSuffix ("C");
+    panSlider.setValue(0.0);
+ 
+    // this function adds the slider to the editor
+    addAndMakeVisible (&panSlider);
+    
+    // add the listener to the slider
+    panSlider.addListener (this);
+    panLabel.setText ("Delay Pan", juce::dontSendNotification);
+    panLabel.attachToComponent (&panSlider, false);
+    panLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
 }
 
 MyDelayAudioProcessorEditor::~MyDelayAudioProcessorEditor()
@@ -97,6 +119,24 @@ void MyDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     audioProcessor.delayTimeVal = delayTimeSlider.getValue();
     audioProcessor.delayFeedbackVal = feedbackSlider.getValue() / 100.0; // convert from percentage to decimal
     audioProcessor.drywetVal = drywetSlider.getValue() / 100.0 ; // convert from percentage to decimal
+    
+    // update panSlider display
+    float panValue = panSlider.getValue();
+    
+    if (panValue > 0.0) {
+        panSlider.setTextValueSuffix ("R");
+    }
+    else if (panValue < 0.0)
+    {
+        panSlider.setTextValueSuffix ("L");
+    }
+    else
+    {
+        panSlider.setTextValueSuffix ("C");
+    }
+    
+    audioProcessor.panVal = (panValue + 100.0) / 200.0; // normalize to between 0(L) and 1(R), to match gain values
+    
 }
 
 //==============================================================================
@@ -120,15 +160,19 @@ void MyDelayAudioProcessorEditor::resized()
     int sliderDim = 100;
     
     
-    delayTimeSlider.setBounds (static_cast<int>(1.0*w/4.0-sliderDim/2), // x pos
+    delayTimeSlider.setBounds (static_cast<int>(1.0*w/5.0-sliderDim/2), // x pos
                                static_cast<int>(h/2-sliderDim/2),       // y pos
                                sliderDim,sliderDim);                    // dimensions
     
-    feedbackSlider.setBounds  (static_cast<int>(2.0*w/4.0-sliderDim/2), // x pos
+    feedbackSlider.setBounds  (static_cast<int>(2.0*w/5.0-sliderDim/2), // x pos
                                static_cast<int>(h/2-sliderDim/2),       // y pos
                                sliderDim,sliderDim);                    // dimensions
     
-    drywetSlider.setBounds    (static_cast<int>(3.0*w/4.0-sliderDim/2), // x pos
+    drywetSlider.setBounds    (static_cast<int>(3.0*w/5.0-sliderDim/2), // x pos
+                               static_cast<int>(h/2-sliderDim/2),       // y pos
+                               sliderDim,sliderDim);                    // dimensions
+    
+    panSlider.setBounds       (static_cast<int>(4.0*w/5.0-sliderDim/2), // x pos
                                static_cast<int>(h/2-sliderDim/2),       // y pos
                                sliderDim,sliderDim);                    // dimensions
 }
