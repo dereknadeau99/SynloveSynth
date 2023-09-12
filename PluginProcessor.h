@@ -21,6 +21,7 @@ class MyDelayAudioProcessor  : public juce::AudioProcessor
 public:
     
     float delayTimeVal;
+    static float maxDelayTime; // in seconds
     
     //==============================================================================
     MyDelayAudioProcessor();
@@ -58,8 +59,23 @@ public:
     //==============================================================================
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+    
+    // my functions
+    
+//    static float getMaxDelayTime();
+    
+    void fillDelayBuffer(int channel, const int BufferLength, const int delayBufferLength, const float* bufferData, const float* delayBufferData);
 
+    void getFromDelayBuffer(juce::AudioBuffer<float>& buffer, int channel, const int bufferLength, const int delayBufferLength, const float* bufferData, const float* delayBufferData);
 private:
+    
+    juce::AudioBuffer<float> mDelayBuffer;
+    int mWritePosition { 0 };
+    int mSampleRate { 44100 };
+    
+    
+    
+    
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyDelayAudioProcessor)
 };
