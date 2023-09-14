@@ -9,6 +9,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "SynthSound.h"
+#include "SynthVoice.h"
 
 //==============================================================================
 /**
@@ -90,6 +92,8 @@ private:
     int mSampleRate { 44100 };
     
     // SYNTH VARS
+    juce::Synthesiser mySynth;
+    double lastSampleRate;
         
 
     //==============================================================================

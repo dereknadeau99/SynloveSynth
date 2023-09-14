@@ -22,6 +22,19 @@ SynloveSynthAudioProcessor::SynloveSynthAudioProcessor()
                        )
 #endif
 {
+    mySynth.clearVoices();
+    
+    int maxVoices = 5;
+    for (int i = 0; i < maxVoices; i++)
+    {
+        mySynth.addVoice(new SynthVoice());
+    }
+    
+    mySynth.clearSounds();
+    
+    mySynth.addSound(new SynthSound());
+    
+    
 }
 
 SynloveSynthAudioProcessor::~SynloveSynthAudioProcessor()
@@ -98,6 +111,9 @@ void SynloveSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPe
     
     //==================SYNTH=======================================
     
+    juce::ignoreUnused(samplesPerBlock);
+    lastSampleRate = sampleRate;
+    mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
     
     
     //==================DELAY=======================================
@@ -146,50 +162,62 @@ bool SynloveSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layo
 void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-        auto totalNumInputChannels  = getTotalNumInputChannels();
-        auto totalNumOutputChannels = getTotalNumOutputChannels();
+    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
+    
+    // for ease of writing and readability
+    const int audioBufferLength = buffer.getNumSamples();
+    const int delayBufferLength = delayBuffer.getNumSamples();
 
-        // In case we have more outputs than inputs, this code clears any output
-        // channels that didn't contain input data, (because these aren't
-        // guaranteed to be empty - they may contain garbage).
-        // This is here to avoid people getting screaming feedback
-        // when they first compile a plugin, but obviously you don't need to keep
-        // this code if your algorithm always overwrites all the output channels.
-        for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-            buffer.clear (i, 0, buffer.getNumSamples());
+    // In case we have more outputs than inputs, this code clears any output
+    // channels that didn't contain input data, (because these aren't
+    // guaranteed to be empty - they may contain garbage).
+    // This is here to avoid people getting screaming feedback
+    // when they first compile a plugin, but obviously you don't need to keep
+    // this code if your algorithm always overwrites all the output channels.
+    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i){
+        buffer.clear (i, 0, audioBufferLength);
+    }
+       
+    mySynth.renderNextBlock(buffer, midiMessages, 0, audioBufferLength);
+    
         
     
     //==============PRE  PROCESSING====================================================
     
         
-        // for ease of writing and readability
-        const int audioBufferLength = buffer.getNumSamples();
-        const int delayBufferLength = delayBuffer.getNumSamples();
+    
         
        
-        if (buffer.getNumSamples() != 0){
-            for (int channel = 0; channel < totalNumInputChannels; ++channel)
-            {
-                
-                //==========AUDIO PROCESSING===========================================
-                
-                // create read pointers, points to start of array
-                const float* audioBufferReadPointer = buffer.getReadPointer(channel);
-                const float* audioBufferWritePointer = buffer.getWritePointer(channel);
-                
-                const float* delayBufferReadPointer = delayBuffer.getReadPointer(channel);
-                
-                
-                
-                effectDelayProcessing(channel,
-                                      buffer,
-                                      audioBufferWritePointer,
-                                      audioBufferReadPointer, delayBufferReadPointer,
-                                      audioBufferLength,      delayBufferLength);
-                
-            }
+    if (buffer.getNumSamples() != 0){
+        for (int channel = 0; channel < totalNumInputChannels; ++channel)
+        {
+            
+            //==========AUDIO PROCESSING===========================================
+            
+            // create read pointers, points to start of array
+            const float* audioBufferReadPointer  = buffer.getReadPointer (channel);
+            const float* audioBufferWritePointer = buffer.getWritePointer(channel);
+            const float* delayBufferReadPointer  = delayBuffer.getReadPointer(channel);
+            
+            //==============SYNTH==================================================
+            
+            
+            
+            
+            
+            
+            
+            //=============EFFECTS=================================================
+            effectDelayProcessing(channel,
+                                  buffer,
+                                  audioBufferWritePointer,
+                                  audioBufferReadPointer, delayBufferReadPointer,
+                                  audioBufferLength,      delayBufferLength);
             
         }
+        
+    }
         
     
     //==============POST PROCESSING====================================================
