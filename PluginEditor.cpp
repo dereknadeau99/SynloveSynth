@@ -13,10 +13,17 @@
 SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynthAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
+    // set size before constructor finishes
     setSize (700, 700);
     
+    // sets up four sliders for delay controls and bpm slider
+    configureDelayControls();
+    
+    
+}
+
+void SynloveSynthAudioProcessorEditor::configureDelayControls ()
+{
     // delay time slider
     delayTimeSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
     delayTimeSlider.setRange (0.0, 5.0);
@@ -146,29 +153,12 @@ SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynth
     addAndMakeVisible (&bpmSlider);
     
     
-    
-//    bpmLabel.setText("BPM", juce::dontSendNotification);
-//    bpmLabel.setJustificationType(juce::Justification::horizontallyCentred);
-//    addAndMakeVisible(&bpmLabel);
-    
-
-    
-    
-    
-    
-    
 }
+
+
 
 void SynloveSynthAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
-    
-//    float delayTimeSliderValue = delayTimeSlider.getValue();
-//    float feedbackSliderValue  = feedbackSlider.getValue();
-//    float drywetSliderValue    = drywetSlider.getValue();
-    
-//
-    
-    
     
     // if delay time slider was changed, update bpm, and send both to processor
     if (slider == &delayTimeSlider)
@@ -190,7 +180,8 @@ void SynloveSynthAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     
     if (slider == &drywetSlider)
     {
-        audioProcessor.drywetVal = drywetSlider.getValue() / 100.0 ; // convert from percentage to decimal
+        // convert from percentage to decimal
+        audioProcessor.drywetVal = drywetSlider.getValue() / 100.0 ;
     }
     
     if (slider == &panSlider)
@@ -224,15 +215,6 @@ void SynloveSynthAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     
     
     
-    
-    
-    
-    
-    // update panSlider display
-    
-    
-    
-    
 }
 
 
@@ -258,24 +240,31 @@ void SynloveSynthAudioProcessorEditor::resized()
     
     int h = getHeight();
     int w = getWidth();
+    
+    configureDelayPositions(h, w);
+    
+    
+}
+
+void SynloveSynthAudioProcessorEditor::configureDelayPositions(int h, int w)
+{
     int sliderDim = 100;
     
-    delayTimeSlider.setBounds (static_cast<int>(1.0*w/5.0-sliderDim/2), // x pos
-                               static_cast<int>(h/2-sliderDim/2),       // y pos
-                               sliderDim,sliderDim);                    // dimensions
+    delayTimeSlider.setBounds (static_cast<int>(1*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
     
-    feedbackSlider.setBounds  (static_cast<int>(2.0*w/5.0-sliderDim/2), // x pos
-                               static_cast<int>(h/2-sliderDim/2),       // y pos
-                               sliderDim,sliderDim);                    // dimensions
+    feedbackSlider.setBounds  (static_cast<int>(2*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
     
-    drywetSlider.setBounds    (static_cast<int>(3.0*w/5.0-sliderDim/2), // x pos
-                               static_cast<int>(h/2-sliderDim/2),       // y pos
-                               sliderDim,sliderDim);                    // dimensions
+    drywetSlider.setBounds    (static_cast<int>(3*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
     
-    panSlider.setBounds       (static_cast<int>(4.0*w/5.0-sliderDim/2), // x pos
-                               static_cast<int>(h/2-sliderDim/2),       // y pos
-                               sliderDim,sliderDim);                    // dimensions
+    panSlider.setBounds       (static_cast<int>(4*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
     
     bpmSlider.setBounds(0, 0, 200, 20);
-    
 }

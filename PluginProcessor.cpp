@@ -93,16 +93,20 @@ void SynloveSynthAudioProcessor::changeProgramName (int index, const juce::Strin
 //==============================================================================
 void SynloveSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+
+    const int numInputChannels = getTotalNumInputChannels();
     
-    // prepare circular buffer for delay
-   const int numInputChannels = getTotalNumInputChannels();
-   const int delayBufferSize = 5.0 * (sampleRate + samplesPerBlock); // TODO change to match max delay time
-   mSampleRate = sampleRate;
+    //==================SYNTH=======================================
+    
+    
+    
+    //==================DELAY=======================================
+    // TODO change delaybuffersize to match max delay time dynamically
+    const int delayBufferSize = 5.0 * (sampleRate + samplesPerBlock);
+    mSampleRate = sampleRate;
    
-   delayBuffer.setSize(numInputChannels, delayBufferSize);
-   dryAudioBufferCopy.setSize(numInputChannels, samplesPerBlock);
+    delayBuffer.setSize(numInputChannels, delayBufferSize);
+    dryAudioBufferCopy.setSize(numInputChannels, samplesPerBlock);
        
     
 }
@@ -154,13 +158,9 @@ void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
             buffer.clear (i, 0, buffer.getNumSamples());
         
-        // This is the place where you'd normally do the guts of your plugin's
-        // audio processing...
-        // Make sure to reset the state if your inner loop is processing
-        // the samples and the outer loop is handling the channels.
-        // Alternatively, you can process the samples with the channels
-        // interleaved by keeping the same state.
-        
+    
+    //==============PRE  PROCESSING====================================================
+    
         
         // for ease of writing and readability
         const int audioBufferLength = buffer.getNumSamples();
@@ -171,72 +171,85 @@ void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             for (int channel = 0; channel < totalNumInputChannels; ++channel)
             {
                 
-                std::cout << channel;
+                //==========AUDIO PROCESSING===========================================
                 
                 // create read pointers, points to start of array
                 const float* audioBufferReadPointer = buffer.getReadPointer(channel);
-                const float* delayBufferReadPointer = delayBuffer.getReadPointer(channel);
                 const float* audioBufferWritePointer = buffer.getWritePointer(channel);
                 
-                // set up dry copy for later mixing
-                dryAudioBufferCopy.copyFromWithRamp(channel,
-                                                    0,
-                                                    audioBufferReadPointer,
-                                                    audioBufferLength,
-                                                    1-drywetVal, 1-drywetVal);
-                
-                // copy dry audio to delay buffer in appropriate time
-                fillDelayBuffer(channel,
-                                audioBufferLength,
-                                delayBufferLength,
-                                audioBufferReadPointer,
-                                delayBufferReadPointer);
-                
-                // copy from delay buffer to output buffer from appropriate time in past
-                copyFromDelayBuffer(channel,
-                                    buffer,
-                                    audioBufferLength,
-                                    delayBufferLength,
-                                    audioBufferReadPointer,
-                                    delayBufferReadPointer);
-                
-                //
-                feedbackDelay(channel,
-                              audioBufferLength,
-                              delayBufferLength,
-                              audioBufferWritePointer);
+                const float* delayBufferReadPointer = delayBuffer.getReadPointer(channel);
                 
                 
-                // apply proper gain to wet version
-                buffer.applyGain(channel,
-                                 0,
-                                 audioBufferLength,
-                                 drywetVal);
                 
-                // sum dry and wet
-                buffer.addFrom(channel,
-                               0,
-                               dryAudioBufferCopy.getReadPointer(channel),
-                               audioBufferLength);
+                effectDelayProcessing(channel,
+                                      buffer,
+                                      audioBufferWritePointer,
+                                      audioBufferReadPointer, delayBufferReadPointer,
+                                      audioBufferLength,      delayBufferLength);
                 
             }
             
         }
         
+    
+    //==============POST PROCESSING====================================================
+    effectDelayProcessingPost(audioBufferLength,delayBufferLength);
         
-        // move write position number of samples that were copied, for all channels
-        delayWritePosition += audioBufferLength;
         
-        // check for wraparound index
-        delayWritePosition %= delayBufferLength;
-        
-    //    std::cout << "audioBufferLength = ";
-    //    std::cout << audioBufferLength;
-    //    std::cout << "\n";
+}
+
+void SynloveSynthAudioProcessor::effectDelayProcessing(const int channel, juce::AudioBuffer<float>& audioBuffer, const float* audioBufferWritePointer, const float* audioBufferReadPointer, const float* delayBufferReadPointer, const int audioBufferLength, const int delayBufferLength)
+{
+    // set up dry copy for later mixing
+    dryAudioBufferCopy.copyFromWithRamp(channel,
+                                        0,
+                                        audioBufferReadPointer,
+                                        audioBufferLength,
+                                        1-drywetVal, 1-drywetVal);
+    
+    // copy dry audio to delay buffer in appropriate time
+    fillDelayBuffer(channel,
+                    audioBufferLength,
+                    delayBufferLength,
+                    audioBufferReadPointer,
+                    delayBufferReadPointer);
+    
+    // copy from delay buffer to output buffer from appropriate time in past
+    copyFromDelayBuffer(channel,
+                        audioBuffer,
+                        audioBufferLength,
+                        delayBufferLength,
+                        audioBufferReadPointer,
+                        delayBufferReadPointer);
+    
     //
-    //    std::cout << "delayWritePosition = ";
-    //    std::cout << delayWritePosition;
-    //    std::cout << "--------------------------------\n";
+    feedbackDelay(channel,
+                  audioBufferLength,
+                  delayBufferLength,
+                  audioBufferWritePointer);
+    
+    
+    // apply proper gain to wet version
+    audioBuffer.applyGain(channel,
+                          0,
+                          audioBufferLength,
+                          drywetVal);
+    
+    // sum dry and wet
+    audioBuffer.addFrom(channel,
+                        0,
+                        dryAudioBufferCopy.getReadPointer(channel),
+                        audioBufferLength);
+    
+}
+
+void SynloveSynthAudioProcessor::effectDelayProcessingPost(const int audioBufferLength, const int delayBufferLength)
+{
+    // move write position number of samples that were copied, for all channels
+    delayWritePosition += audioBufferLength;
+    
+    // check for wraparound index
+    delayWritePosition %= delayBufferLength;
 }
 
 void SynloveSynthAudioProcessor::copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer)

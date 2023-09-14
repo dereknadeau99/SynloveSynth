@@ -28,11 +28,17 @@ public:
 private:
     
     void sliderValueChanged(juce::Slider* slider) override;
+    
+    void configureDelayControls ();
+    void configureDelayPositions(int h, int w);
         
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     SynloveSynthAudioProcessor& audioProcessor;
     
+    
+    
+    //======DELAY CONTROLS======
     juce::Slider delayTimeSlider;
     juce::Label  delayTimeLabel;
     

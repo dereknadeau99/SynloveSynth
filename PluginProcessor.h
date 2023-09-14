@@ -65,23 +65,31 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     
-    // my functions
-        
-    //    static float getMaxDelayTime();
-        
+    //===================================DELAY FUNCS======================================
+    void effectDelayProcessing(const int channel, juce::AudioBuffer<float>& audioBuffer, const float* audioBufferWritePointer, const float* audioBufferReadPointer, const float* delayBufferReadPointer, const int audioBufferLength, const int delayBufferLength);
+    
+    void effectDelayProcessingPost(const int audioBufferLength, const int delayBufferLength);
+    
     void fillDelayBuffer(int channel, const int BufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
 
     void copyFromDelayBuffer(int channel, juce::AudioBuffer<float>& audioBuffer, const int audioBufferLength, const int delayBufferLength, const float* audioBufferReadPointer, const float* delayBufferReadPointer);
     
     void feedbackDelay(int channel, const int audioBufferLength, const int delayBufferLength, const float* audioBufferWritePointer);
+    
+    //===================================SYNTH FUNCS=======================================
+    
+    
         
 
 private:
 
+    // DELAY VARS
     juce::AudioBuffer<float> delayBuffer;
     juce::AudioBuffer<float> dryAudioBufferCopy;
     int delayWritePosition { 0 };
     int mSampleRate { 44100 };
+    
+    // SYNTH VARS
         
 
     //==============================================================================
