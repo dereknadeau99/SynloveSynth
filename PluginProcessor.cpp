@@ -1,6 +1,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "SynthVoice.h"
 
 //==============================================================================
 SynloveSynthAudioProcessor::SynloveSynthAudioProcessor()
@@ -17,7 +18,7 @@ SynloveSynthAudioProcessor::SynloveSynthAudioProcessor()
 {
     mySynth.clearVoices();
 
-    int maxVoices = 5;
+    int maxVoices = 1;
     for (int i = 0; i < maxVoices; i++)
     {
         mySynth.addVoice(new SynthVoice());
@@ -202,11 +203,11 @@ void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
 
             //=============EFFECTS=================================================
-            effectDelayProcessing(channel,
-                                  buffer,
-                                  audioBufferWritePointer,
-                                  audioBufferReadPointer, delayBufferReadPointer,
-                                  audioBufferLength,      delayBufferLength);
+//            effectDelayProcessing(channel,
+//                                  buffer,
+//                                  audioBufferWritePointer,
+//                                  audioBufferReadPointer, delayBufferReadPointer,
+//                                  audioBufferLength,      delayBufferLength);
 
         }
 
@@ -214,7 +215,7 @@ void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
 
     //==============POST PROCESSING====================================================
-    effectDelayProcessingPost(audioBufferLength,delayBufferLength);
+    //effectDelayProcessingPost(audioBufferLength,delayBufferLength);
 
 
 }

@@ -12,7 +12,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "SynthSound.h"
 #include "SynOscillator.h"
-#include "SynthVoice.h"
 
 
 class SynthVoice : public juce::SynthesiserVoice
@@ -31,9 +30,12 @@ public:
     void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchWheelPosition)
     {
         
+        //osc.on();
         frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber, tuningOfA440);
+        level = velocity;
         
-        osc = SynOscillator(sampleRate, frequency);
+        osc.setSampleRate(sampleRate);
+        osc.setFreqeuncy (frequency);
         
         std::cout << midiNoteNumber << std::endl;
         
@@ -43,6 +45,10 @@ public:
     void stopNote(float velocity, bool allowTailOff)
     {
         clearCurrentNote();
+        velocity = 0;
+        level = 0;
+        frequency = 0;
+        //osc.off();
     }
     
     bool isVoiceActive ()
@@ -73,15 +79,16 @@ public:
     void renderNextBlock (juce::AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
     {
         
-//        double wav
-        
         for (int sample = 0; sample < numSamples; ++sample)
         {
+            
+            float wave = osc.sinewave() * level;
+            
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
             {
                 
                 
-                outputBuffer.addSample(channel, startSample, osc.sinewave());
+               outputBuffer.addSample(channel, startSample, wave);
             }
             
             ++startSample;
@@ -92,8 +99,8 @@ public:
     }
     
     void renderNextBlock (juce::AudioBuffer<double> &outputBuffer, int startSample, int numSamples)
-
     {
+        
         
     }
     
@@ -101,6 +108,7 @@ public:
     {
 
         sampleRate = newRate;
+        osc.setSampleRate(sampleRate);
 
     }
     
@@ -115,10 +123,8 @@ private:
     double frequency;
     double tuningOfA440 = 440.0;
     double sampleRate;
+    float level;
     
     SynOscillator osc;
-    
-
-    
     
 };

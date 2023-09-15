@@ -9,6 +9,7 @@
 #include "SynOscillator.h"
 #include <math.h>
 
+SynOscillator::SynOscillator() {}
 
 SynOscillator::SynOscillator(float sampleRate, float  freq)
 {
@@ -25,17 +26,23 @@ SynOscillator::SynOscillator(float sampleRate, double freq){
 
 SynOscillator::~SynOscillator() {}
 
-double SynOscillator::sinewave()
+void SynOscillator::on()  { active = true;  }
+
+void SynOscillator::off() { active = false; }
+
+float SynOscillator::sinewave()
 {
     
+    if (not active) { return 0; }
+    
     // 2pi * freq * timestep / samplerate
-    float radians = w * f * t / SR;
+    double radians = w * f * (s / SR);
     
     // move time forward (max val of int t means we can hold note down for 93 mins)
-    t++;
+    s++;
     
     // return correct value
-    return sin(radians);
+    return static_cast<float>(cos(radians));
     
 }
 
