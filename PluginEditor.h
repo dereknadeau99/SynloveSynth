@@ -14,13 +14,12 @@
 //==============================================================================
 /**
 */
-class MyDelayAudioProcessorEditor : public juce::AudioProcessorEditor,
-                                    private juce::Slider::Listener //
-
+class SynloveSynthAudioProcessorEditor: public juce::AudioProcessorEditor,
+                                        private juce::Slider::Listener
 {
 public:
-    MyDelayAudioProcessorEditor (MyDelayAudioProcessor&);
-    ~MyDelayAudioProcessorEditor() override;
+    SynloveSynthAudioProcessorEditor (SynloveSynthAudioProcessor&);
+    ~SynloveSynthAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -30,11 +29,32 @@ private:
     
     void sliderValueChanged(juce::Slider* slider) override;
     
+    void configureDelayControls ();
+    void configureDelayPositions(int h, int w);
+        
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    MyDelayAudioProcessor& audioProcessor;
+    SynloveSynthAudioProcessor& audioProcessor;
     
-    juce::Slider delayTime;
+    
+    
+    //======DELAY CONTROLS======
+    juce::Slider delayTimeSlider;
+    juce::Label  delayTimeLabel;
+    
+    juce::Slider feedbackSlider;
+    juce::Label  feedbackLabel;
+    
+    juce::Slider drywetSlider;
+    juce::Label  drywetLabel;
+    
+    juce::Slider panSlider;
+    juce::Label  panLabel;
+    
+    juce::Slider bpmSlider;
+    juce::Label  bpmLabel;
+        
+    //    juce::Button[4] bpmDivisionButton;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MyDelayAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SynloveSynthAudioProcessorEditor)
 };

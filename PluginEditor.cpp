@@ -10,49 +10,230 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-MyDelayAudioProcessorEditor::MyDelayAudioProcessorEditor (MyDelayAudioProcessor& p)
+SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynthAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (600, 600);
+    // set size before constructor finishes
+    setSize (700, 700);
     
-    // these define the parameters of our slider object
-    delayTime.setSliderStyle (juce::Slider::RotaryVerticalDrag);
-    delayTime.setRange (0.0, 5.0, 0.05);
-    delayTime.setTextBoxStyle (juce::Slider::TextBoxBelow, true, 90, 0);
-    delayTime.setPopupDisplayEnabled (true, false, this);
-    delayTime.setTextValueSuffix (" Seconds Delay");
-    delayTime.setValue(1.0);
+    // sets up four sliders for delay controls and bpm slider
+    configureDelayControls();
+    
+    
+}
+
+void SynloveSynthAudioProcessorEditor::configureDelayControls ()
+{
+    // delay time slider
+    delayTimeSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    delayTimeSlider.setRange (0.0, 5.0);
+    delayTimeSlider.setValue(0.5);
+    delayTimeSlider.setNumDecimalPlacesToDisplay(2);
+    delayTimeSlider.setDoubleClickReturnValue(true, 1.0);
+    delayTimeSlider.setSkewFactor(0.5);
+    
+    
+    // settextboxstyle( location, readonly, width, height
+    delayTimeSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                     false,
+                                     90,
+                                     20);
+    delayTimeSlider.setPopupDisplayEnabled (false, false, this);
+    delayTimeSlider.setTextValueSuffix (" Seconds");
  
     // this function adds the slider to the editor
-    addAndMakeVisible (&delayTime);
+    addAndMakeVisible (&delayTimeSlider);
     
     // add the listener to the slider
-    delayTime.addListener (this);
+    delayTimeSlider.addListener(this);
+    
+    // add label to slider
+    addAndMakeVisible (delayTimeLabel);
+    delayTimeLabel.setText ("Delay Time", juce::dontSendNotification);
+    delayTimeLabel.attachToComponent (&delayTimeSlider, false);
+    delayTimeLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    
+    
+    // ===========================================================================
+    // feedback time slider
+    feedbackSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    feedbackSlider.setRange (0.0, 100.0);
+    feedbackSlider.setNumDecimalPlacesToDisplay(2);
+    feedbackSlider.setValue(50.0);
+    feedbackSlider.setDoubleClickReturnValue(true, 50.0);
+    
+    feedbackSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                    false,
+                                    90,
+                                    20);
+    feedbackSlider.setPopupDisplayEnabled (false, false, this);
+    feedbackSlider.setTextValueSuffix ("%");
+    
+    // this function adds the slider to the editor
+    addAndMakeVisible (&feedbackSlider);
+    
+    // add the listener to the slider
+    feedbackSlider.addListener (this);
+    feedbackLabel.setText ("Feedback Amount", juce::dontSendNotification);
+    feedbackLabel.attachToComponent (&feedbackSlider, false);
+    feedbackLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    
+    // ===========================================================================
+    // dry/wet slider
+    drywetSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    drywetSlider.setRange (0.0, 100.0);
+    drywetSlider.setValue(50.0);
+    drywetSlider.setNumDecimalPlacesToDisplay(2);
+    drywetSlider.setDoubleClickReturnValue(true, 50.0);
+    
+    drywetSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                  false,
+                                  90,
+                                  20);
+    drywetSlider.setPopupDisplayEnabled (false, false, this);
+    drywetSlider.setTextValueSuffix ("%");
+    
+ 
+    // this function adds the slider to the editor
+    addAndMakeVisible (&drywetSlider);
+    
+    // add the listener to the slider
+    drywetSlider.addListener(this);
+    drywetLabel.setText ("Dry/Wet Amount", juce::dontSendNotification);
+    drywetLabel.attachToComponent (&drywetSlider, false);
+    drywetLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    // ===========================================================================
+    // panning slider
+    panSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    panSlider.setRange (-100, 100, 1);
+    panSlider.setValue(0);
+    panSlider.setDoubleClickReturnValue(true, 0);
+    
+    panSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                  false,
+                                  90,
+                                  20);
+    panSlider.setPopupDisplayEnabled (false, false, this);
+    panSlider.setTextValueSuffix ("C");
+    
+ 
+    // this function adds the slider to the editor
+    addAndMakeVisible (&panSlider);
+    
+    // add the listener to the slider
+    panSlider.addListener (this);
+    
+    // add label to slider
+    panLabel.setText ("Delay Pan", juce::dontSendNotification);
+    panLabel.attachToComponent (&panSlider, false);
+    panLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    
+    // ===========================================================================
+    // bpm label / changer
+    
+    bpmSlider.setSliderStyle(juce::Slider::LinearBar);
+    bpmSlider.setRange(30, 200, 0.1);
+    bpmSlider.setValue(120.0);
+    bpmSlider.setDoubleClickReturnValue(true, 120.0);
+    bpmSlider.setNumDecimalPlacesToDisplay(1);
+    
+    bpmSlider.setTextBoxStyle (juce::Slider::TextBoxAbove,
+                                  false,
+                                  90,
+                                  20);
+    bpmSlider.setPopupDisplayEnabled (false, false, this);
+    bpmSlider.setTextValueSuffix (" BPM");
+    
+    bpmSlider.addListener(this);
+    
+    addAndMakeVisible (&bpmSlider);
+    
+    
 }
 
-MyDelayAudioProcessorEditor::~MyDelayAudioProcessorEditor()
+
+
+void SynloveSynthAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
 {
+    
+    // if delay time slider was changed, update bpm, and send both to processor
+    if (slider == &delayTimeSlider)
+    {
+        float delayTimeSliderValue = delayTimeSlider.getValue();
+        
+        // change from BPM to BPS to reflect delay units, and set delay to resulting value
+        bpmSlider.setValue(60.0 / delayTimeSliderValue, juce::dontSendNotification);
+        
+        // send new values to processor
+        audioProcessor.bpmVal = bpmSlider.getValue();
+        audioProcessor.delayTimeVal = delayTimeSliderValue;
+    }
+    
+    if (slider == &feedbackSlider)
+    {
+        audioProcessor.delayFeedbackVal = feedbackSlider.getValue() / 100.0; // convert from percentage to decimal
+    }
+    
+    if (slider == &drywetSlider)
+    {
+        // convert from percentage to decimal
+        audioProcessor.drywetVal = drywetSlider.getValue() / 100.0 ;
+    }
+    
+    if (slider == &panSlider)
+    {
+        float panSliderValue = panSlider.getValue();
+        
+        // set pan slider text appropriately
+        if (panSliderValue > 0.0)       { panSlider.setTextValueSuffix ("R"); }
+        else if (panSliderValue < 0.0)  { panSlider.setTextValueSuffix ("L"); }
+        else                            { panSlider.setTextValueSuffix ("C"); }
+        
+        // usual range is (-100, +100)
+        // normalize to (0, 1) to match gain values, send to processor
+        audioProcessor.panVal = (panSliderValue + 100.0) / 200.0;
+    }
+    
+    // if bpm slider was changed, update delay time, and send both to processor
+    if (slider == &bpmSlider)
+    {
+        
+        float bpmSliderValue = bpmSlider.getValue();
+        
+        // change from BPM to BPS to reflect delay units, and set delay to resulting value
+        delayTimeSlider.setValue(60.0 / bpmSliderValue, juce::dontSendNotification);
+        
+        // send new values to processor
+        audioProcessor.bpmVal = bpmSliderValue;
+        audioProcessor.delayTimeVal = delayTimeSlider.getValue();
+        
+    }
+    
+    
+    
 }
 
-void MyDelayAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
+
+SynloveSynthAudioProcessorEditor::~SynloveSynthAudioProcessorEditor()
 {
-    audioProcessor.delayTimeVal = delayTime.getValue();
 }
 
 //==============================================================================
-void MyDelayAudioProcessorEditor::paint (juce::Graphics& g)
+void SynloveSynthAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-//    g.setColour (juce::Colours::white);
-//    g.setFont (15.0f);
-//    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
+    
+    //    g.setColour (juce::Colours::white);
+    //    g.setFont (15.0f);
+    //    g.drawFittedText ("Hello World!", getLocalBounds(), juce::Justification::centred, 1);
 }
 
-void MyDelayAudioProcessorEditor::resized()
+void SynloveSynthAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
@@ -60,5 +241,30 @@ void MyDelayAudioProcessorEditor::resized()
     int h = getHeight();
     int w = getWidth();
     
-    delayTime.setBounds ((int)w/2-100, (int)h/2-100, 200,200);
+    configureDelayPositions(h, w);
+    
+    
+}
+
+void SynloveSynthAudioProcessorEditor::configureDelayPositions(int h, int w)
+{
+    int sliderDim = 100;
+    
+    delayTimeSlider.setBounds (static_cast<int>(1*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    feedbackSlider.setBounds  (static_cast<int>(2*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    drywetSlider.setBounds    (static_cast<int>(3*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    panSlider.setBounds       (static_cast<int>(4*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    bpmSlider.setBounds(0, 0, 200, 20);
 }

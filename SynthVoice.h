@@ -14,6 +14,7 @@
 #include "SynOscillator.h"
 #include "SynthVoice.h"
 
+
 class SynthVoice : public juce::SynthesiserVoice
 {
   
@@ -91,13 +92,16 @@ public:
     }
     
     void renderNextBlock (juce::AudioBuffer<double> &outputBuffer, int startSample, int numSamples)
+
     {
         
     }
     
     void setCurrentPlaybackSampleRate (double newRate)
     {
+
         sampleRate = newRate;
+
     }
     
     bool isPlayingChannel (int midiChannel)
@@ -114,8 +118,7 @@ private:
     
     SynOscillator osc;
     
-    
-    
+
     
     
 };
