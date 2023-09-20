@@ -80,7 +80,7 @@ public:
     
     //===================================SYNTH FUNCS=======================================
     
-    
+    void setEnvelope(float attack, float decay, float sustain, float release);
         
 
 private:
@@ -90,6 +90,7 @@ private:
     juce::AudioBuffer<float> dryAudioBufferCopy;
     int delayWritePosition { 0 };
     int mSampleRate { 44100 };
+    int maxVoices = 1;
     
     // SYNTH VARS
     juce::Synthesiser mySynth;

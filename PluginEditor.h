@@ -30,8 +30,9 @@ private:
     void sliderValueChanged(juce::Slider* slider) override;
     
     void configureEnvelopeControls();
+    void configureEnvelopePositions(int h, int w);
     
-    void configureDelayControls ();
+    void configureDelayControls();
     void configureDelayPositions(int h, int w);
         
     // This reference is provided as a quick way for your editor to
@@ -41,6 +42,7 @@ private:
     //======SYNTH CONTROLS======
     
     juce::Slider attackSlider;
+    
     juce::Label  attackLabel;
     
     juce::Slider decaySlider;

@@ -25,13 +25,13 @@ SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynth
     
 }
 
-void configureEnvelopeControls()
+void SynloveSynthAudioProcessorEditor::configureEnvelopeControls()
 {
     
     // attack time slider
     attackSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
     attackSlider.setRange (0.0, 5.0);
-    attackSlider.setValue(0.5);
+    attackSlider.setValue(0.2);
     attackSlider.setNumDecimalPlacesToDisplay(2);
     attackSlider.setDoubleClickReturnValue(true, 1.0);
     attackSlider.setSkewFactor(0.5);
@@ -54,11 +54,99 @@ void configureEnvelopeControls()
     // add label to slider
     addAndMakeVisible(attackLabel);
     attackLabel.setText ("Attack Time", juce::dontSendNotification);
-    attackLabel.attachToComponent (&delayTimeSlider, false);
+    attackLabel.attachToComponent (&attackSlider, false);
     attackLabel.setJustificationType(juce::Justification::horizontallyCentred);
     
+    //================================================================
+    // decay time slider
+    decaySlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    decaySlider.setRange (0.0, 5.0);
+    decaySlider.setValue(0.5);
+    decaySlider.setNumDecimalPlacesToDisplay(2);
+    decaySlider.setDoubleClickReturnValue(true, 1.0);
+    decaySlider.setSkewFactor(0.5);
     
     
+    // settextboxstyle( location, readonly, width, height
+    decaySlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                     false,
+                                     90,
+                                     20);
+    decaySlider.setPopupDisplayEnabled (false, false, this);
+    decaySlider.setTextValueSuffix (" Seconds");
+ 
+    // this function adds the slider to the editor
+    addAndMakeVisible (&decaySlider);
+    
+    // add the listener to the slider
+    decaySlider.addListener(this);
+    
+    // add label to slider
+    addAndMakeVisible(decayLabel);
+    decayLabel.setText ("Decay Time", juce::dontSendNotification);
+    decayLabel.attachToComponent (&decaySlider, false);
+    decayLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    //=========================================================================
+    // attack time slider
+    sustainSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    sustainSlider.setRange (0.0, 100.0);
+    sustainSlider.setValue(70.0);
+    sustainSlider.setNumDecimalPlacesToDisplay(2);
+    sustainSlider.setDoubleClickReturnValue(true, 1.0);
+    //sustainSlider.setSkewFactor(0.5);
+    
+    
+    // settextboxstyle( location, readonly, width, height
+    sustainSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                     false,
+                                     90,
+                                     20);
+    sustainSlider.setPopupDisplayEnabled (false, false, this);
+    sustainSlider.setTextValueSuffix ("% Gain");
+ 
+    // this function adds the slider to the editor
+    addAndMakeVisible (&sustainSlider);
+    
+    // add the listener to the slider
+    sustainSlider.addListener(this);
+    
+    // add label to slider
+    addAndMakeVisible(attackLabel);
+    sustainLabel.setText ("Sustain Level", juce::dontSendNotification);
+    sustainLabel.attachToComponent (&sustainSlider, false);
+    sustainLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
+    //===========================================================================
+    // attack time slider
+    releaseSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    releaseSlider.setRange (0.0, 5.0);
+    releaseSlider.setValue(0.5);
+    releaseSlider.setNumDecimalPlacesToDisplay(2);
+    releaseSlider.setDoubleClickReturnValue(true, 1.0);
+    releaseSlider.setSkewFactor(0.5);
+    
+    
+    // settextboxstyle( location, readonly, width, height
+    releaseSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                     false,
+                                     90,
+                                     20);
+    releaseSlider.setPopupDisplayEnabled (false, false, this);
+    releaseSlider.setTextValueSuffix (" Seconds");
+ 
+    // this function adds the slider to the editor
+    addAndMakeVisible (&releaseSlider);
+    
+    // add the listener to the slider
+    releaseSlider.addListener(this);
+    
+    // add label to slider
+    addAndMakeVisible(attackLabel);
+    releaseLabel.setText ("Release Time", juce::dontSendNotification);
+    releaseLabel.attachToComponent (&releaseSlider, false);
+    releaseLabel.setJustificationType(juce::Justification::horizontallyCentred);
+
 }
 
 void SynloveSynthAudioProcessorEditor::configureDelayControls ()
@@ -252,7 +340,13 @@ void SynloveSynthAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
         
     }
     
-    
+    if (slider == &attackSlider || slider == &decaySlider || slider == &sustainSlider || slider == &releaseSlider)
+    {
+        audioProcessor.setEnvelope(attackSlider. getValue(),
+                                   decaySlider.  getValue(),
+                                   sustainSlider.getValue() / 100.0,
+                                   releaseSlider.getValue());
+    }
     
 }
 
@@ -280,7 +374,8 @@ void SynloveSynthAudioProcessorEditor::resized()
     int h = getHeight();
     int w = getWidth();
     
-    configureDelayPositions(h, w);
+    configureDelayPositions   (h, w);
+    configureEnvelopePositions(h, w);
     
     
 }
@@ -303,6 +398,29 @@ void SynloveSynthAudioProcessorEditor::configureDelayPositions(int h, int w)
     
     panSlider.setBounds       (static_cast<int>(4*w/5 - sliderDim/2),   // x pos
                                static_cast<int>(5*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    bpmSlider.setBounds(0, 0, 200, 20);
+}
+
+void SynloveSynthAudioProcessorEditor::configureEnvelopePositions(int h, int w)
+{
+    int sliderDim = 100;
+    
+    attackSlider.setBounds    (static_cast<int>(1*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(3*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    decaySlider.setBounds     (static_cast<int>(2*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(3*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    sustainSlider.setBounds   (static_cast<int>(3*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(3*h/6 - sliderDim/2),   // y pos
+                               sliderDim, sliderDim);                   // dimensions
+    
+    releaseSlider.setBounds   (static_cast<int>(4*w/5 - sliderDim/2),   // x pos
+                               static_cast<int>(3*h/6 - sliderDim/2),   // y pos
                                sliderDim, sliderDim);                   // dimensions
     
     bpmSlider.setBounds(0, 0, 200, 20);

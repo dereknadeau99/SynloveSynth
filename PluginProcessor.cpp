@@ -12,8 +12,7 @@ SynloveSynthAudioProcessor::SynloveSynthAudioProcessor()
 #endif
 {
     mySynth.clearVoices();
-
-    int maxVoices = 1;
+    
     for (int i = 0; i < maxVoices; i++)
     {
         mySynth.addVoice(new SynthVoice());
@@ -435,4 +434,12 @@ void SynloveSynthAudioProcessor::setStateInformation (const void* data, int size
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SynloveSynthAudioProcessor();
+}
+
+void SynloveSynthAudioProcessor::setEnvelope(float attack, float decay, float sustain, float release)
+{
+    for (int i = 0; i < maxVoices; i++)
+    {
+        static_cast<SynthVoice*>(mySynth.getVoice(i))->setEnvelope(attack, decay, sustain, release);
+    }
 }

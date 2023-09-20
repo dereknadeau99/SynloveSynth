@@ -32,6 +32,7 @@ public:
     {
         
         CURR_ENV = ATTACK;
+        envelopeSampleCounter = 0;
         
         frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber, tuningOfA440);
         initVelocity = velocity; // / 127.0;
@@ -78,7 +79,7 @@ public:
         {
             
             // get value from oscillator & apply linear attack envelope and initial level
-            float wave = osc.sawtoothwave() * envelope() * initVelocity;
+            float wave = osc.sinewave() * envelope() * initVelocity;
             
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
             {
@@ -132,11 +133,12 @@ public:
         {
             
             float   samplesToRelease = (ADSR[RELEASE] * sampleRate) - envelopeSampleCounter;
-            gain = (samplesToRelease / (ADSR[RELEASE] * sampleRate)) * ADSR[SUSTAIN];
+            gain = (samplesToRelease / (ADSR[RELEASE] * sampleRate)) * currentLevel;
             
             if (gain <= 0.0)
             {
                 gain = 0;
+                currentLevel = gain;
                 CURR_ENV = NOTE_OFF;
                 envelopeSampleCounter = 0;
                 clearCurrentNote(); // IMPORTANT
@@ -153,17 +155,16 @@ public:
         if (CURR_ENV == DECAY) {
             
             // num of samples it will take to decay fully
-            float   decayLength = (ADSR[DECAY] * sampleRate);
-            
-            // num of samples left in decay envelope
-            float   remainingSamplesToDecay = decayLength - envelopeSampleCounter;
+            float decayLength = (ADSR[DECAY] * sampleRate);
             
             // multiply gain change by time elapsed
-            gain = (1 - ADSR[SUSTAIN]) * (remainingSamplesToDecay / decayLength);
+            gain = 1 - ((1 - ADSR[SUSTAIN]) * (envelopeSampleCounter / decayLength));
+            currentLevel = gain;
             
             if (gain < ADSR[SUSTAIN])
             {
                 gain = ADSR[SUSTAIN];
+                currentLevel = gain;
                 CURR_ENV = SUSTAIN;
                 envelopeSampleCounter = 0;
                 return gain;
@@ -175,11 +176,15 @@ public:
             
             // attack in s divided sample rate should be == 1 at end of attack
             gain = envelopeSampleCounter / (ADSR[ATTACK] * sampleRate);
+            currentLevel = gain;
             
             if (gain >= 1)
             {
                 gain = 1.0;
-                CURR_ENV = DECAY;
+                if (ADSR[SUSTAIN] == 1.0) { CURR_ENV = SUSTAIN; }
+                else                      { CURR_ENV = DECAY;   }
+                
+                currentLevel = gain;
                 envelopeSampleCounter = 0;
                 return gain;
                 
@@ -198,6 +203,7 @@ private:
     double sampleRate;
     float  initVelocity;
     float  envelopeSampleCounter = 0.0;
+    float currentLevel = 0;
     
     // seconds, seconds, dB, seconds
     float ADSR[4] = {0.5, 0.5, 0.5, 2.5};
