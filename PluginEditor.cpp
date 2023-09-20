@@ -14,7 +14,7 @@ SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynth
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     // set size before constructor finishes
-    setSize (700, 700);
+    setSize (900, 700);
     
     // sets up sliders for synth envelope controls
     configureEnvelopeControls();
@@ -27,6 +27,17 @@ SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynth
 
 void SynloveSynthAudioProcessorEditor::configureEnvelopeControls()
 {
+    // waveform selector
+    waveformSelector.addItem("Sine",   1); // ID cannot be zero, reserved to mean no selection
+    waveformSelector.addItem("Saw",    2);
+    waveformSelector.addItem("Square", 3);
+    waveformSelector.setEditableText(false);
+    waveformSelector.addListener(this);
+    waveformSelector.setSelectedId(1);
+    waveformSelector.setText("Waveform");
+    
+    addAndMakeVisible(&waveformSelector);
+    
     
     // attack time slider
     attackSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
@@ -35,7 +46,6 @@ void SynloveSynthAudioProcessorEditor::configureEnvelopeControls()
     attackSlider.setNumDecimalPlacesToDisplay(2);
     attackSlider.setDoubleClickReturnValue(true, 1.0);
     attackSlider.setSkewFactor(0.5);
-    
     
     // settextboxstyle( location, readonly, width, height
     attackSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
@@ -65,7 +75,6 @@ void SynloveSynthAudioProcessorEditor::configureEnvelopeControls()
     decaySlider.setNumDecimalPlacesToDisplay(2);
     decaySlider.setDoubleClickReturnValue(true, 1.0);
     decaySlider.setSkewFactor(0.5);
-    
     
     // settextboxstyle( location, readonly, width, height
     decaySlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
@@ -350,6 +359,17 @@ void SynloveSynthAudioProcessorEditor::sliderValueChanged (juce::Slider* slider)
     
 }
 
+void SynloveSynthAudioProcessorEditor::comboBoxChanged (juce::ComboBox* comboBox)
+{
+    
+    if (comboBox == &waveformSelector)
+    {
+        int newWave = waveformSelector.getSelectedId();
+        audioProcessor.setWaveform(newWave);
+    }
+    
+}
+
 
 SynloveSynthAudioProcessorEditor::~SynloveSynthAudioProcessorEditor()
 {
@@ -407,21 +427,24 @@ void SynloveSynthAudioProcessorEditor::configureEnvelopePositions(int h, int w)
 {
     int sliderDim = 100;
     
-    attackSlider.setBounds    (static_cast<int>(1*w/5 - sliderDim/2),   // x pos
+    waveformSelector.setBounds(static_cast<int>(1*w/6 - sliderDim/2),   // x pos
+                               static_cast<int>(3*h/6 - sliderDim/2),   // y pos
+                               100, 20);                                // dimensions
+    
+    attackSlider.setBounds    (static_cast<int>(2*w/6 - sliderDim/2),   // x pos
                                static_cast<int>(3*h/6 - sliderDim/2),   // y pos
                                sliderDim, sliderDim);                   // dimensions
     
-    decaySlider.setBounds     (static_cast<int>(2*w/5 - sliderDim/2),   // x pos
+    decaySlider.setBounds     (static_cast<int>(3*w/6 - sliderDim/2),   // x pos
                                static_cast<int>(3*h/6 - sliderDim/2),   // y pos
                                sliderDim, sliderDim);                   // dimensions
     
-    sustainSlider.setBounds   (static_cast<int>(3*w/5 - sliderDim/2),   // x pos
+    sustainSlider.setBounds   (static_cast<int>(4*w/6 - sliderDim/2),   // x pos
                                static_cast<int>(3*h/6 - sliderDim/2),   // y pos
                                sliderDim, sliderDim);                   // dimensions
     
-    releaseSlider.setBounds   (static_cast<int>(4*w/5 - sliderDim/2),   // x pos
+    releaseSlider.setBounds   (static_cast<int>(5*w/6 - sliderDim/2),   // x pos
                                static_cast<int>(3*h/6 - sliderDim/2),   // y pos
                                sliderDim, sliderDim);                   // dimensions
     
-    bpmSlider.setBounds(0, 0, 200, 20);
 }

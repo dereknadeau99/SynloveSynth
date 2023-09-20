@@ -22,9 +22,12 @@ public:
     void on();
     void off();
     
+    float wave();
+    
     float getFrequency()              { return f; }
     void  setFreqeuncy(float newFreq) { f = newFreq; }
     
+    void  setWaveform(int newWave);
     void  setSampleRate(float newSampleRate) { SR = newSampleRate; }
     
     float sinewave();
@@ -36,7 +39,6 @@ public:
     float squarewave(int numHarmonics);
     
     
-    
 private:
     
     float f;            // frequency
@@ -44,6 +46,13 @@ private:
     float s  = 0;       // sample number
     float w  = 2.0 * M_PI;
     bool active = true;
+    
+    int currentWaveform = 1; // sine as default
+    
+    int SIN = 1;
+    int SAW = 2;
+    int SQU = 3;
+    
     
     
 };

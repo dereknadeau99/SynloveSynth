@@ -15,7 +15,8 @@
 /**
 */
 class SynloveSynthAudioProcessorEditor: public juce::AudioProcessorEditor,
-                                        private juce::Slider::Listener
+                                        private juce::Slider::Listener,
+                                        private juce::ComboBox::Listener
 {
 public:
     SynloveSynthAudioProcessorEditor (SynloveSynthAudioProcessor&);
@@ -27,7 +28,8 @@ public:
 
 private:
     
-    void sliderValueChanged(juce::Slider* slider) override;
+    void sliderValueChanged (juce::Slider* slider)     override;
+    void comboBoxChanged    (juce::ComboBox* comboBox) override;
     
     void configureEnvelopeControls();
     void configureEnvelopePositions(int h, int w);
@@ -41,8 +43,9 @@ private:
     
     //======SYNTH CONTROLS======
     
-    juce::Slider attackSlider;
+    juce::ComboBox waveformSelector;
     
+    juce::Slider attackSlider;
     juce::Label  attackLabel;
     
     juce::Slider decaySlider;

@@ -8,18 +8,22 @@ SynloveSynthAudioProcessor::SynloveSynthAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true))
+                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true))//,
+//tree (*this, nullptr)
 #endif
 {
-    mySynth.clearVoices();
     
-    for (int i = 0; i < maxVoices; i++)
-    {
-        mySynth.addVoice(new SynthVoice());
-    }
-
+//    juce::RangedAudioParameter
+//    
+//    juce::NormalisableRange<float> attackParam(0.01, 5.0);
+//    
+//    tree.createAndAddParameter("attack", "Attack", "Attack", attackParam, 0.2, nullptr, nullptr);
+    
+    
+    // init synth
+    mySynth.clearVoices();
+    for (int i = 0; i < maxVoices; i++) { mySynth.addVoice(new SynthVoice()); }
     mySynth.clearSounds();
-
     mySynth.addSound(new SynthSound());
     
     
@@ -441,5 +445,15 @@ void SynloveSynthAudioProcessor::setEnvelope(float attack, float decay, float su
     for (int i = 0; i < maxVoices; i++)
     {
         static_cast<SynthVoice*>(mySynth.getVoice(i))->setEnvelope(attack, decay, sustain, release);
+    }
+}
+
+void SynloveSynthAudioProcessor::setWaveform(int newWave)
+{
+    for (int i = 0; i < maxVoices; i++)
+    {
+        SynthVoice*  currentVoice = static_cast<SynthVoice*>   (mySynth.getVoice(i));
+        SynOscillator* currentOsc = static_cast<SynOscillator*>(currentVoice->getOsc());
+        currentOsc->setWaveform(newWave);
     }
 }

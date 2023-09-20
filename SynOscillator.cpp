@@ -31,6 +31,19 @@ void SynOscillator::on()  { active = true;  }
 
 void SynOscillator::off() { active = false; }
 
+void SynOscillator::setWaveform(int newWave)
+{
+    currentWaveform = newWave;
+}
+
+float SynOscillator::wave()
+{
+    if      (currentWaveform == SIN) { return sinewave    (); }
+    else if (currentWaveform == SAW) { return sawtoothwave(); }
+    else if (currentWaveform == SQU) { return squarewave  (); }
+    return 0;
+}
+
 float SynOscillator::sinewave()
 {
     
@@ -68,7 +81,7 @@ float SynOscillator::sawtoothwave(int numHarmonics)
     
 }
 
-float SynOscillator::squarewave() { return sawtoothwave(10); }
+float SynOscillator::squarewave() { return squarewave(10); }
 
 float SynOscillator::squarewave(int numHarmonics)
 {

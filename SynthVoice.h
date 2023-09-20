@@ -34,7 +34,8 @@ public:
         CURR_ENV = ATTACK;
         envelopeSampleCounter = 0;
         
-        frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber, tuningOfA440);
+        // this function returns an octave too high, so divide by 2
+        frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber) / 2;
         initVelocity = velocity; // / 127.0;
         
         osc.setSampleRate(sampleRate);
@@ -79,7 +80,7 @@ public:
         {
             
             // get value from oscillator & apply linear attack envelope and initial level
-            float wave = osc.sinewave() * envelope() * initVelocity;
+            float wave = osc.wave() * envelope() * initVelocity;
             
             for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
             {
@@ -120,6 +121,9 @@ public:
         ADSR[RELEASE] = release;
     }
     
+    // used to set waveform, maybe more in the future
+    SynOscillator* getOsc() { return &osc; }
+    
     // returns appropriate gain percentage based on envelope position
     float envelope() {
         
@@ -128,7 +132,6 @@ public:
         float gain = 0;
         
         // check envelope in reverse order (RSDA) so that no advancement messes with processing
-        
         if (CURR_ENV == RELEASE)
         {
             
@@ -197,6 +200,8 @@ public:
     }
     
 private:
+    
+    
     
     double frequency;
     double tuningOfA440 = 440.0;

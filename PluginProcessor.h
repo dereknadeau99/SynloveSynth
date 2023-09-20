@@ -30,6 +30,8 @@ public:
     
     static float maxDelayTime; // in seconds
     
+    //juce::AudioProcessorValueTreeState tree;
+    
     //==============================================================================
     SynloveSynthAudioProcessor();
     ~SynloveSynthAudioProcessor() override;
@@ -67,6 +69,10 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
     
+    //===================================PROCC FUNCS======================================
+    
+    
+    
     //===================================DELAY FUNCS======================================
     void effectDelayProcessing(const int channel, juce::AudioBuffer<float>& audioBuffer, const float* audioBufferWritePointer, const float* audioBufferReadPointer, const float* delayBufferReadPointer, const int audioBufferLength, const int delayBufferLength);
     
@@ -81,6 +87,7 @@ public:
     //===================================SYNTH FUNCS=======================================
     
     void setEnvelope(float attack, float decay, float sustain, float release);
+    void setWaveform(int waveID);
         
 
 private:
@@ -90,7 +97,7 @@ private:
     juce::AudioBuffer<float> dryAudioBufferCopy;
     int delayWritePosition { 0 };
     int mSampleRate { 44100 };
-    int maxVoices = 1;
+    int maxVoices = 5;
     
     // SYNTH VARS
     juce::Synthesiser mySynth;
