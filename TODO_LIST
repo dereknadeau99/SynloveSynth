@@ -1,0 +1,15 @@
+TODO LIST
+
+- Let user add multiple voices to single note/oscillator
+--- should be able to change gain of each independently 
+--- should be able to change ADSR of each independently 
+--- should have a tab group to switch between voices in GUI
+
+- Synth effects
+--- vibrato
+----- depth
+----- rate
+
+- Reverb effect
+--- reverberation time
+--- dry/wet
