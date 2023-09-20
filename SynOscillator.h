@@ -29,6 +29,12 @@ public:
     
     float sinewave();
     
+    float sawtoothwave();
+    float sawtoothwave(int numHarmonics);
+    
+    float squarewave();
+    float squarewave(int numHarmonics);
+    
     
     
 private:

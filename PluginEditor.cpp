@@ -16,8 +16,47 @@ SynloveSynthAudioProcessorEditor::SynloveSynthAudioProcessorEditor (SynloveSynth
     // set size before constructor finishes
     setSize (700, 700);
     
+    // sets up sliders for synth envelope controls
+    configureEnvelopeControls();
+    
     // sets up four sliders for delay controls and bpm slider
     configureDelayControls();
+    
+    
+}
+
+void configureEnvelopeControls()
+{
+    
+    // attack time slider
+    attackSlider.setSliderStyle (juce::Slider::RotaryVerticalDrag);
+    attackSlider.setRange (0.0, 5.0);
+    attackSlider.setValue(0.5);
+    attackSlider.setNumDecimalPlacesToDisplay(2);
+    attackSlider.setDoubleClickReturnValue(true, 1.0);
+    attackSlider.setSkewFactor(0.5);
+    
+    
+    // settextboxstyle( location, readonly, width, height
+    attackSlider.setTextBoxStyle (juce::Slider::TextBoxBelow,
+                                     false,
+                                     90,
+                                     20);
+    attackSlider.setPopupDisplayEnabled (false, false, this);
+    attackSlider.setTextValueSuffix (" Seconds");
+ 
+    // this function adds the slider to the editor
+    addAndMakeVisible (&attackSlider);
+    
+    // add the listener to the slider
+    attackSlider.addListener(this);
+    
+    // add label to slider
+    addAndMakeVisible(attackLabel);
+    attackLabel.setText ("Attack Time", juce::dontSendNotification);
+    attackLabel.attachToComponent (&delayTimeSlider, false);
+    attackLabel.setJustificationType(juce::Justification::horizontallyCentred);
+    
     
     
 }

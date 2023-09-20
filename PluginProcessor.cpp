@@ -7,13 +7,8 @@
 SynloveSynthAudioProcessor::SynloveSynthAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
+                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true))
 #endif
 {
     mySynth.clearVoices();
@@ -27,6 +22,8 @@ SynloveSynthAudioProcessor::SynloveSynthAudioProcessor()
     mySynth.clearSounds();
 
     mySynth.addSound(new SynthSound());
+    
+    
 
 
 }
@@ -182,9 +179,12 @@ void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
 
 
-
-    if (buffer.getNumSamples() != 0){
-        for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    
+    
+    if (audioBufferLength != 0){
+        
+        
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel)
         {
 
             //==========AUDIO PROCESSING===========================================
@@ -197,17 +197,18 @@ void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
             //==============SYNTH==================================================
 
 
-
+            
 
 
 
 
             //=============EFFECTS=================================================
-//            effectDelayProcessing(channel,
-//                                  buffer,
-//                                  audioBufferWritePointer,
-//                                  audioBufferReadPointer, delayBufferReadPointer,
-//                                  audioBufferLength,      delayBufferLength);
+            effectDelayProcessing(channel,
+                                  buffer,
+                                  audioBufferWritePointer,
+                                  audioBufferReadPointer, delayBufferReadPointer,
+                                  audioBufferLength,      delayBufferLength);
+            
 
         }
 
@@ -215,7 +216,7 @@ void SynloveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
 
     //==============POST PROCESSING====================================================
-    //effectDelayProcessingPost(audioBufferLength,delayBufferLength);
+    effectDelayProcessingPost(audioBufferLength, delayBufferLength);
 
 
 }
@@ -262,6 +263,8 @@ void SynloveSynthAudioProcessor::effectDelayProcessing(const int channel, juce::
                         0,
                         dryAudioBufferCopy.getReadPointer(channel),
                         audioBufferLength);
+    
+    
 
 }
 
@@ -380,7 +383,7 @@ void SynloveSynthAudioProcessor::fillDelayBuffer(int channel, const int audioBuf
         const int delayBufferWrap = audioBufferLength - delayBufferRemaining;
 
 
-        // audioBuffer.copyFrom(channel, destStartSample, source, numSamples, startgain, endgain)
+        // audioBuffer.copyFrom(channel, destStartSample, source, numSamples, startgain, endgain) // TODO what
 
         // write before wraparound
         delayBuffer.copyFromWithRamp(channel,

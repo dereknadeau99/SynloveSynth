@@ -29,6 +29,8 @@ private:
     
     void sliderValueChanged(juce::Slider* slider) override;
     
+    void configureEnvelopeControls();
+    
     void configureDelayControls ();
     void configureDelayPositions(int h, int w);
         
@@ -36,7 +38,19 @@ private:
     // access the processor object that created it.
     SynloveSynthAudioProcessor& audioProcessor;
     
+    //======SYNTH CONTROLS======
     
+    juce::Slider attackSlider;
+    juce::Label  attackLabel;
+    
+    juce::Slider decaySlider;
+    juce::Label  decayLabel;
+    
+    juce::Slider sustainSlider;
+    juce::Label  sustainLabel;
+    
+    juce::Slider releaseSlider;
+    juce::Label  releaseLabel;
     
     //======DELAY CONTROLS======
     juce::Slider delayTimeSlider;
